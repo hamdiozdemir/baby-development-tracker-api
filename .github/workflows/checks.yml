@@ -11,6 +11,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
       - name: Test
-        run: python manage.py test
+        run: python backend/manage.py test
       - name: Lint
         run: flake8
