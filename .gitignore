@@ -3,5 +3,6 @@ __pycache__/
 migrations/
 *.sqlite3
 .github/
+.env
 
 
