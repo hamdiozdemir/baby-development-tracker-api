@@ -105,7 +105,7 @@ class UserReleatedModelTests(TestCase):
     def test_create_child_model_object(self):
         """Test for creating child object and calculating age in months."""
         name = "Child Name1"
-        birthday = date.today() - timedelta(days=375)
+        birthday = date.today() - timedelta(days=360)
         parent = Parent.objects.get(user=self.parent_user)
         child_object = Child.objects.create(
             parent=parent,

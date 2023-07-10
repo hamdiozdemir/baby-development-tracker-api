@@ -4,6 +4,20 @@ Database models.
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import date
+import random
+import string
+
+
+def slug_field_generator(size):
+    """Function that returns a string for slugs."""
+    slug = ''.join(random.choices(
+        string.ascii_lowercase + string.digits, k=round(size/2)
+    )) + \
+    "-" + \
+    ''.join(random.choices(
+        string.ascii_lowercase + string.digits, k=round(size/2)
+    ))
+    return slug
 
 
 class CustomUser(AbstractUser):
@@ -57,14 +71,14 @@ class Child(models.Model):
                                on_delete=models.SET_NULL,
                                null=True, blank=True)
     name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, db_index=True)
     birthday = models.DateField()
 
     @property
     def age_in_months(self):
         """Calculate the current age in months."""
         today = date.today()
-        age_in_months = (today.year - self.birthday.year) * \
-            12 + (today.month - self.birthday.month)
+        age_in_months = round(((today - self.birthday).days) / 30)
         return age_in_months
 
     def add_tester(self, tester_user):
@@ -86,6 +100,11 @@ class Child(models.Model):
                 child=self,
                 item=item
             )
+
+    def save(self, *args, **kwargs):
+        """Add slug field automaticly."""
+        self.slug = slug_field_generator(8)
+        super().save(*args, **kwargs)
 
 
 class Comments(models.Model):
@@ -117,6 +136,9 @@ class Instructions(models.Model):
     """Model for instruction for some items."""
     name = models.CharField(max_length=255)
     document = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Items(models.Model):
