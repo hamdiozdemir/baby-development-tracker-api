@@ -16,15 +16,15 @@ class UserReleatedModelTests(TestCase):
     def setUp(self):
         """Create Tester and Parent users."""
         self.tester_user = CustomUser.objects.create_user(
-            email="test@example.com",
-            username="tester_user",
+            email="test345@example.com",
+            name="tester_user",
             password="password123",
             role="Tester"
         )
 
         self.parent_user = CustomUser.objects.create_user(
-            email="test@example.com",
-            username="parent_user",
+            email="test2@example.com",
+            name="parent_user",
             password="password123",
             role="Parent"
         )
@@ -34,12 +34,12 @@ class UserReleatedModelTests(TestCase):
     def test_create_user_succesfuly(self):
         """Test for creating a user with email successfuly."""
         email = 'test@example.com'
-        username = 'username1'
+        name = 'anotheruser'
         password = 'TestPass'
         role = 'Parent'
         user = CustomUser.objects.create_user(
             email=email,
-            username=username,
+            name=name,
             password=password,
             role=role
         )
@@ -50,27 +50,27 @@ class UserReleatedModelTests(TestCase):
 
     def test_create_user_role_error(self):
         email = 'test@example.com'
-        username = "username2"
+        name = "username3"
         password = 'testpass123'
         role = "SuperAd"
 
         with self.assertRaises(ValueError):
             CustomUser.objects.create_user(
                 email=email,
-                username=username,
+                name=name,
                 password=password,
                 role=role
                 )
 
     def test_create_tester_user_object(self):
         email = 'test@example.com'
-        username = "username2"
+        name = "name2"
         password = 'testpass123'
         role = "Tester"
 
         user = CustomUser.objects.create_user(
             email=email,
-            username=username,
+            name=name,
             password=password,
             role=role,
         )
@@ -79,18 +79,18 @@ class UserReleatedModelTests(TestCase):
 
         self.assertTrue(tester_user_check.exists())
         self.assertEqual(
-            user.username,
-            tester_user_check.first().user.username)
+            user.name,
+            tester_user_check.first().user.name)
 
     def test_create_parent_user_object(self):
         email = 'test@example.com'
-        username = "username2"
+        name = "username2"
         password = 'testpass123'
         role = "Parent"
 
         user = CustomUser.objects.create_user(
             email=email,
-            username=username,
+            name=name,
             password=password,
             role=role,
         )
@@ -99,8 +99,8 @@ class UserReleatedModelTests(TestCase):
 
         self.assertTrue(parent_user_check.exists())
         self.assertEqual(
-            user.username,
-            parent_user_check.first().user.username)
+            user.name,
+            parent_user_check.first().user.name)
 
     def test_create_child_model_object(self):
         """Test for creating child object and calculating age in months."""
@@ -259,4 +259,3 @@ class TestRelatedTests(TestCase):
         records_query = Records.objects.filter(child=child)
 
         self.assertEqual(len(records_query), 3)
-
