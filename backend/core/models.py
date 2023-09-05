@@ -10,6 +10,7 @@ from django.db import models
 from datetime import date
 import random
 import string
+import uuid
 
 
 class UserManager(BaseUserManager):
@@ -81,15 +82,21 @@ def slug_field_generator(size):
 
 class Tester(models.Model):
     """Tester role model."""
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.user.name
 
 
 class Parent(models.Model):
     """Parents role model."""
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     tester = models.ForeignKey(Tester,
                                on_delete=models.SET_NULL,
                                blank=True, null=True)
+
+    def __str__(self):
+        return self.user.name
 
     def add_tester(self, tester_user):
         self.tester = tester_user
@@ -106,7 +113,7 @@ class Child(models.Model):
                                on_delete=models.SET_NULL,
                                null=True, blank=True)
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, db_index=True)
+    slug = models.UUIDField(default=uuid.uuid4, auto_created=True)
     birthday = models.DateField()
 
     @property
@@ -136,10 +143,8 @@ class Child(models.Model):
                 item=item
             )
 
-    def save(self, *args, **kwargs):
-        """Add slug field automaticly."""
-        self.slug = slug_field_generator(8)
-        super().save(*args, **kwargs)
+    def __str__(self):
+        return self.name
 
 
 class Comments(models.Model):
@@ -160,17 +165,9 @@ class Tests(models.Model):
 
 class Categories(models.Model):
     """Model for Test's categories/subtests."""
-    test = models.ForeignKey(Tests, on_delete=models.CASCADE)
+    test = models.ForeignKey(Tests, related_name='categories',
+                             on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-
-class Instructions(models.Model):
-    """Model for instruction for some items."""
-    name = models.CharField(max_length=255)
-    document = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -178,14 +175,15 @@ class Instructions(models.Model):
 
 class Items(models.Model):
     """Model for test items."""
-    test = models.ForeignKey(Tests, on_delete=models.CASCADE)
-    category = models.ForeignKey(Categories, on_delete=models.CASCADE)
+    test = models.ForeignKey(Tests, related_name='items',
+                             on_delete=models.CASCADE)
+    category = models.ForeignKey(Categories, related_name='items',
+                                 on_delete=models.CASCADE)
     step = models.IntegerField()
     is_verbal = models.BooleanField(default=False)
-    instruction = models.ForeignKey(Instructions,
-                                    on_delete=models.SET_NULL,
-                                    null=True, blank=True)
-    description = models.CharField(max_length=255)
+    instruction = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
+    document = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         ordering = ["test", "category", "step"]
