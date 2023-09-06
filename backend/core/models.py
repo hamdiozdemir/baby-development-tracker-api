@@ -69,17 +69,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             )
 
 
-def slug_field_generator(size):
-    """Function that returns a string for slugs."""
-    slug = ''.join(random.choices(
-        string.ascii_lowercase + string.digits, k=round(size/2)
-            )) + "-" + ''.join(
-        random.choices(
-            string.ascii_lowercase + string.digits,
-            k=round(size/2)))
-    return slug
-
-
 class Tester(models.Model):
     """Tester role model."""
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
