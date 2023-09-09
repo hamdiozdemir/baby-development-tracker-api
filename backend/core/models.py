@@ -7,9 +7,8 @@ from django.contrib.auth.models import (
     PermissionsMixin
 )
 from django.db import models
+
 from datetime import date
-import random
-import string
 import uuid
 
 
@@ -49,6 +48,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=50, choices=ROLES)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    child = models.ManyToManyField('Child', related_name='user')
 
     objects = UserManager()
 
@@ -59,51 +59,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             raise ValueError('Please select a valid role.')
         super().save(*args, **kwargs)
 
-        if self.role == "Tester":
-            Tester.objects.create(
-                user=self
-            )
-        elif self.role == "Parent":
-            Parent.objects.create(
-                user=self
-            )
-
-
-class Tester(models.Model):
-    """Tester role model."""
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-
-    def __str__(self):
-        return self.user.name
-
-
-class Parent(models.Model):
-    """Parents role model."""
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    tester = models.ForeignKey(Tester,
-                               on_delete=models.SET_NULL,
-                               blank=True, null=True)
-
-    def __str__(self):
-        return self.user.name
-
-    def add_tester(self, tester_user):
-        self.tester = tester_user
-        self.save()
-        return self
-
 
 class Child(models.Model):
     """Child object model."""
-    parent = models.ForeignKey(Parent,
-                               on_delete=models.CASCADE,
-                               null=True, blank=True)
-    tester = models.ForeignKey(Tester,
-                               on_delete=models.SET_NULL,
-                               null=True, blank=True)
     name = models.CharField(max_length=255)
     slug = models.UUIDField(default=uuid.uuid4, auto_created=True)
     birthday = models.DateField()
+    tests = models.ManyToManyField('Tests', related_name='child', null=True)
 
     @property
     def age_in_months(self):
@@ -112,25 +74,6 @@ class Child(models.Model):
         age_in_months = round(((today - self.birthday).days) / 30)
         return age_in_months
 
-    def add_tester(self, tester_user):
-        self.tester = tester_user
-        self.save()
-        return self
-
-    def add_parent(self, parent_user):
-        self.parent = parent_user
-        self.save()
-        return self
-
-    def add_test(self, test_id):
-        """Add test and create the data in Records model."""
-        test = Tests.objects.get(id=test_id)
-        items = Items.objects.filter(test=test)
-        for item in items:
-            Records.objects.create(
-                child=self,
-                item=item
-            )
 
     def __str__(self):
         return self.name
@@ -207,4 +150,4 @@ class Records(models.Model):
     last_checkout = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.item} ({self.is_complete})"
+        return f"{self.item} | ({self.is_complete})"

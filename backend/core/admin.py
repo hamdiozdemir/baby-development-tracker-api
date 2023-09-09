@@ -3,12 +3,10 @@ Admin Site Registerations
 """
 
 from django.contrib import admin
-from .models import (CustomUser, Tester, Parent, Child, Comments,
+from .models import (CustomUser, Child, Comments,
                      Tests, Categories, Items,
                      Percentages, Records)
 
-admin.site.register(Tester)
-admin.site.register(Parent)
 admin.site.register(Child)
 admin.site.register(Comments)
 admin.site.register(Tests)

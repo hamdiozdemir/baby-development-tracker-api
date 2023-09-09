@@ -5,7 +5,7 @@ Views for Asssessment APIs.
 from django.shortcuts import get_object_or_404
 
 from rest_framework import generics
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import AssesmentsListSerializer, AssessmentDetailSerializer
@@ -27,7 +27,7 @@ class AssessmentDetailViews(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Tests.objects.all()
     serializer_class = AssessmentDetailSerializer
-    authentication_classes = [SessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
     def get_object(self):

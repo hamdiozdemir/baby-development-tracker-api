@@ -9,6 +9,10 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from core.models import Child
+from user.serializers import UserSerializer, ChildDetailSerializer
+import datetime
+
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 PROFILE_URL = reverse('user:profile')
@@ -17,6 +21,11 @@ PROFILE_URL = reverse('user:profile')
 def create_user(**params):
     """Create and return a new user."""
     return get_user_model().objects.create_user(**params)
+
+
+def child_detail_url(child_id):
+    """Create and return url for child obj."""
+    return reverse('user:child-detail', args=[child_id])
 
 
 class PublicUserAPITests(TestCase):
@@ -170,13 +179,10 @@ class PrivateUserAPITests(TestCase):
     def test_retrieve_profile_success(self):
         """Test retrieving profile for logged in user."""
         response = self.client.get(PROFILE_URL)
+        serializer = UserSerializer(self.user)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {
-            'name': self.user.name,
-            'email': self.user.email,
-            'role': self.user.role
-        })
+        self.assertEqual(response.data, serializer.data)
 
     def test_post_profile_not_allowed(self):
         """Test POST request is not allowed for profile endpoint."""
@@ -213,3 +219,95 @@ class PrivateUserAPITests(TestCase):
         self.assertEqual(self.user.email, payload['email'])
         self.assertEqual(self.user.name, payload['name'])
         self.assertNotEqual(self.user.role, payload['role'])
+
+
+class ChildObjectsTests(TestCase):
+    """Tests for child objects."""
+
+    def setUp(self):
+        payload = {
+            'name': 'newuser',
+            'email': 'test@example.com',
+            'password': 'testpass',
+            'role': 'Parent'
+        }
+        self.user = create_user(**payload)
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_child_profile_not_authorized(self):
+        """Test for retrieving a child's profile not authorized."""
+
+        child_obj = Child.objects.create(
+            name="Mike",
+            birthday=datetime.date(2010, 9, 25)
+        )
+        url = child_detail_url(child_id=child_obj.id)
+        response_get = self.client.get(url)
+
+        self.assertEqual(response_get.status_code,
+                         status.HTTP_401_UNAUTHORIZED)
+
+    def test_patch_child_profile_not_authorized(self):
+        """Test for updating a child's profile not authorized."""
+
+        child_obj = Child.objects.create(
+            name="Mike",
+            birthday=datetime.date(2010, 9, 25)
+        )
+        url = child_detail_url(child_id=child_obj.id)
+        payload = {
+            'name': "Micheal"
+        }
+        response_patch = self.client.patch(url, payload)
+
+        self.assertEqual(response_patch.status_code,
+                         status.HTTP_401_UNAUTHORIZED)
+        self.assertNotEqual(child_obj.name,
+                            payload['name'])
+
+    def test_delete_child_profile_not_authorized(self):
+        """Test for deleting a child's profile not authorized."""
+
+        child_obj = Child.objects.create(
+            name="Mike",
+            birthday=datetime.date(2010, 9, 25)
+        )
+        url = child_detail_url(child_id=child_obj.id)
+        response_delete = self.client.delete(url)
+
+        self.assertEqual(response_delete.status_code,
+                         status.HTTP_401_UNAUTHORIZED)
+        self.assertTrue(Child.objects.filter(name='Mike').exists())
+
+    def test_get_child_obj_successful(self):
+        """Test for retrieving child object successfully."""
+
+        child_obj = Child.objects.create(
+            name="Maike",
+            birthday=datetime.date(2021, 2, 15)
+        )
+        self.user.child.add(child_obj)
+        self.user.refresh_from_db()
+        url = child_detail_url(child_id=child_obj.id)
+        response = self.client.get(url)
+        serializer = ChildDetailSerializer(child_obj)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_add_child_to_user_successful(self):
+        """Test for adding a child to user successfuly."""
+        payload = {'child': [
+            {'name': "New Child",
+            'birthday': datetime.date(2020, 8, 20)}
+        ]}
+        response = self.client.patch(PROFILE_URL, payload, format='json')
+        self.user.refresh_from_db()
+
+        serializer = UserSerializer(self.user)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(serializer.data['child'][0]['name'],
+                         payload['child'][0]['name'])

@@ -24,6 +24,7 @@ def detail_url(test_id):
     """Create and return a test's/assessment's detail url."""
     return reverse('assessment:detail', args=[test_id])
 
+
 def create_test_details(test1, test2):
     """Create test, category and items for testings."""
     category1 = Categories.objects.create(test=test1, name="Cat1")
@@ -55,6 +56,7 @@ def create_test_details(test1, test2):
             instruction="testing item4"
         )]
     )
+
 
 class AssessmentRetrivingTests(TestCase):
 
@@ -119,11 +121,11 @@ class AssessmentRetrivingTests(TestCase):
         response_delete = self.client.delete(url)
 
         self.assertIn(response_patch.status_code,
-                         [status.HTTP_405_METHOD_NOT_ALLOWED, status.HTTP_403_FORBIDDEN])
+                      [401, 403, 405])
         self.assertIn(response_post.status_code,
-                         [status.HTTP_405_METHOD_NOT_ALLOWED, status.HTTP_403_FORBIDDEN])
+                      [401, 403, 405])
         self.assertIn(response_delete.status_code,
-                         [status.HTTP_405_METHOD_NOT_ALLOWED, status.HTTP_403_FORBIDDEN])
+                      [401, 403, 405])
 
 
     def test_assessment_edit_allowed_for_staff_users(self):
@@ -141,7 +143,7 @@ class AssessmentRetrivingTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.test1.refresh_from_db()
         self.assertEqual(self.test1.name, payload['name'])
-        #DELETING
+        # DELETING
         url2 = detail_url(self.test2.id)
         response2 = self.client.delete(url2)
         query = Tests.objects.filter(name='TEAMS 3').exists()

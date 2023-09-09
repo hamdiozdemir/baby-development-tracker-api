@@ -4,7 +4,7 @@ from rest_framework import permissions
 
 
 class IsStaffOrReadOnly(permissions.BasePermission):
-    """Permission class for allows regulat Users to Read and Staffs to edit."""
+    """Permission class for allows regular Users to Read and Staffs to edit."""
 
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
