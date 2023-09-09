@@ -74,7 +74,6 @@ class Child(models.Model):
         age_in_months = round(((today - self.birthday).days) / 30)
         return age_in_months
 
-
     def __str__(self):
         return self.name
 

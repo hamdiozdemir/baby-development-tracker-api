@@ -127,9 +127,9 @@ class AssessmentRetrivingTests(TestCase):
         self.assertIn(response_delete.status_code,
                       [401, 403, 405])
 
-
     def test_assessment_edit_allowed_for_staff_users(self):
-        """Test for assesment details POST, PATCH, DELETE allowed for staff users."""
+        """Test for assesment details POST, PATCH, DELETE allowed
+        for staff users."""
 
         create_test_details(self.test1, self.test2)
         self.user.is_staff = True

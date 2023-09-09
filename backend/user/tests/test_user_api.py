@@ -299,10 +299,14 @@ class ChildObjectsTests(TestCase):
 
     def test_add_child_to_user_successful(self):
         """Test for adding a child to user successfuly."""
-        payload = {'child': [
-            {'name': "New Child",
-            'birthday': datetime.date(2020, 8, 20)}
-        ]}
+        payload = {
+            'child': [
+                {
+                    'name': "New Child",
+                    'birthday': datetime.date(2020, 8, 20)
+                }
+            ]
+        }
         response = self.client.patch(PROFILE_URL, payload, format='json')
         self.user.refresh_from_db()
 

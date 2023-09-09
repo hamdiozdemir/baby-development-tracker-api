@@ -5,7 +5,7 @@ Tests for models.
 from django.test import TestCase
 from core.models import (CustomUser, Child, Comments,
                          Tests, Categories, Items, Percentages,
-                         Records)
+                         )
 from datetime import (date, timedelta)
 
 
@@ -67,7 +67,7 @@ class UserReleatedModelTests(TestCase):
         password = 'testpass123'
         role = "Tester"
 
-        user = CustomUser.objects.create_user(
+        CustomUser.objects.create_user(
             email=email,
             name=name,
             password=password,
@@ -87,7 +87,7 @@ class UserReleatedModelTests(TestCase):
         password = 'testpass123'
         role = "Parent"
 
-        user = CustomUser.objects.create_user(
+        CustomUser.objects.create_user(
             email=email,
             name=name,
             password=password,
